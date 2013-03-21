@@ -6,16 +6,28 @@ def whyrun_supported?
 end
 
 action :associate do
-  addr = address(new_resource.ip)
-
-  if addr.nil?
-    raise "Elastic IP #{new_resource.ip} does not exist"
-  elsif addr[:instance_id] == instance_id
-    Chef::Log.debug("Elastic IP #{new_resource.ip} is already attached to the instance")
+  if new_resource.ip.nil?
+    addr = address(public_ip)
+    if addr.nil?
+      converge_by("assiging Elastic IP and attaching to instance") do
+        elastic_ip = assign
+        Chef::Log.info("Attaching Elastic IP #{elastic_ip} to the instance")
+        attach(elastic_ip, new_resource.timeout)
+      end
+    elsif addr[:instance_id] == instance_id
+      Chef::Log.debug("Elastic IP #{public_ip} is already attached to the instance")
+    end
   else
-    converge_by("attach Elastic IP #{new_resource.ip} to the instance") do
-      Chef::Log.info("Attaching Elastic IP #{new_resource.ip} to the instance")
-      attach(new_resource.ip, new_resource.timeout)
+    addr = address(new_resource.ip)
+    if addr.nil?
+      raise "Elastic IP #{new_resource.ip} does not exist"
+    elsif addr[:instance_id] == instance_id
+      Chef::Log.debug("Elastic IP #{new_resource.ip} is already attached to the instance")
+    else
+      converge_by("attach Elastic IP #{new_resource.ip} to the instance") do
+        Chef::Log.info("Attaching Elastic IP #{new_resource.ip} to the instance")
+        attach(new_resource.ip, new_resource.timeout)
+      end
     end
   end
 end
@@ -39,6 +51,10 @@ private
 
 def address(ip)
   ec2.describe_addresses.find{|a| a[:public_ip] == ip}
+end
+
+def assign
+  ec2.allocate_address[:public_ip]
 end
 
 def attach(ip, timeout)

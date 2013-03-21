@@ -37,6 +37,10 @@ module Opscode
         @@instance_availability_zone ||= query_instance_availability_zone
       end
 
+      def public_ip
+        @public_ip ||= query_public_ip
+      end
+
       private
 
       def query_instance_id
@@ -51,6 +55,13 @@ module Opscode
         raise "Cannot find availability zone!" unless availability_zone
         Chef::Log.debug("Instance's availability zone is #{availability_zone}")
         availability_zone
+      end
+
+      def query_public_ip
+        public_ip = open('ttp://169.254.169.254/latest/meta-data/public-ipv4'){|f| f.gets}
+        raise "Cannot find public_ip!" unless public_ip
+        Chef::Log.debug("Instance's public_ip is #{public_ip}")
+        public_ip
       end
 
     end
