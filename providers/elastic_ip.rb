@@ -58,7 +58,7 @@ def assign
 end
 
 def attach(ip, timeout)
-  ec2.associate_address(instance_id, ip)
+  ec2.associate_address(instance_id, {:public_ip => ip})
 
   # block until attached
   begin
@@ -82,7 +82,7 @@ def attach(ip, timeout)
 end
 
 def detach(ip, timeout)
-  ec2.disassociate_address(ip)
+  ec2.disassociate_address({:public_ip => ip})
 
   # block until detached
   begin
