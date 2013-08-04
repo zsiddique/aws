@@ -190,7 +190,7 @@ def correct_device_map(device_map)
   corrected_device_map = {}
   # Rekey
   device_map.keys.each do |k|
-    if k.start_with?('sd')
+    if (k.start_with?('sd') && node['lsb']['codename'] == 'precise')
       new_k = 'xvd' + k[2..-1]
       if corrected_device_map.include?(new_k)
         Chef::Log.error("Unable to remap due to collision.")
@@ -206,10 +206,8 @@ end
 
 # Generate the string using the corrected map.
 def device_map_to_string(device_map)
-  if node['lsb']['codename'] == 'precise' then
-    corrected_map = correct_device_map(device_map)
-  end
-  
+  corrected_map = correct_device_map(device_map)
+
   devices_string = ""
   corrected_map.keys.sort.each do |k|
     devices_string += "/dev/#{k} "
