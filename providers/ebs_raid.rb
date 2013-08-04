@@ -206,8 +206,10 @@ end
 
 # Generate the string using the corrected map.
 def device_map_to_string(device_map)
-  corrected_map = correct_device_map(device_map)
-
+  if node['lsb']['codename'] == 'precise' then
+    corrected_map = correct_device_map(device_map)
+  end
+  
   devices_string = ""
   corrected_map.keys.sort.each do |k|
     devices_string += "/dev/#{k} "
